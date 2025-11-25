@@ -1,0 +1,7 @@
+[project]
+name = "noisepalace"
+version = "0.1.0"
+description = "Soon to be a well documented library of many noise functions."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
