@@ -44,7 +44,7 @@ class PerlinNoise:
             (self.permutation_table[x & 255] + y) & 255
         ]
 
-    def _gradient(self, hash_value: int64) -> Tuple[int, int]:
+    def _gradient(self, hash_value: int64) -> NDArray[int64]:
         return self.gradient_vectors[hash_value % 360]
 
     def simple_2d(
@@ -55,16 +55,27 @@ class PerlinNoise:
         x_offset: float = 0.0,
         y_offset: float = 0.0,
         gradient_vec_offset: int = 0,
-    ) -> None:
+    ) -> float64:
         center_point = numpy.array((x, y), numpy.int64)
-        vertices: List[NDArray[int64]] = []
+        vertices: List[NDArray[int64]] = [
+            (center_point + point) for point in self.offsets
+        ]
+        gradients: List[NDArray[int64]] = [
+            self._gradient(self._hash(x, y)) for x, y in vertices
+        ]
+        influence_vectors: List[NDArray[int64]] = [
+            (center_point - vertex) for vertex in vertices
+        ]
+        # TODO: Re-check influence_vectors & vertices for optimization.
+        #       I'm pretty sure I'm doing something dumb here.
 
-        for point in self.offsets:
-            point: numpy.ndarray[Tuple[int, int]]
-            vertices.append(center_point + point)
+        noise: List[float64] = [
+            numpy.dot(gradient, influence)
+            for gradient, influence in zip(gradients, influence_vectors)
+        ]
+        perlin_noise = numpy.interp(0.5, noise[:2], noise[2:])
 
-        for x, y in vertices:
-            print(self._gradient(self._hash(x, y)))
+        return perlin_noise
 
 
 if __name__ == "__main__":
